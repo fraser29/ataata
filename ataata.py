@@ -76,8 +76,14 @@ class Ataata(QMainWindow):
         chapters_layout.addWidget(QLabel("Chapters:"))
         self.chapter_list = QListWidget()
         chapters_layout.addWidget(self.chapter_list)
+        
+        chapters_button_layout = QHBoxLayout()
+        self.import_button = QPushButton("Import Chapters")
         self.export_button = QPushButton("Export Chapters")
-        chapters_layout.addWidget(self.export_button)
+        chapters_button_layout.addWidget(self.import_button)
+        chapters_button_layout.addWidget(self.export_button)
+        chapters_layout.addLayout(chapters_button_layout)
+        
         right_layout.addLayout(chapters_layout)
 
         # layouts
@@ -99,6 +105,7 @@ class Ataata(QMainWindow):
         self.chapter_list.setContextMenuPolicy(Qt.CustomContextMenu)
         self.chapter_list.customContextMenuRequested.connect(self.show_context_menu)
         self.export_button.clicked.connect(self.export_chapters)
+        self.import_button.clicked.connect(self.import_chapters)
 
         # Timer 
         self.timer = QTimer(self)
@@ -234,6 +241,25 @@ class Ataata(QMainWindow):
             index = self.chapter_list.row(current_item)
             del self.chapters[index]
             self.update_chapter_list()
+
+    def import_chapters(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Import Chapters", "", "Text Files (*.txt)")
+        if file_path:
+            try:
+                with open(file_path, 'r') as f:
+                    lines = f.readlines()
+                
+                self.chapters = []
+                for line in lines:
+                    time_str, name = line.strip().split(' - ', 1)
+                    h, m, s = map(int, time_str.split(':'))
+                    time_seconds = h * 3600 + m * 60 + s
+                    self.chapters.append((time_seconds, name))
+                
+                self.update_chapter_list()
+                QMessageBox.information(self, "Import Chapters", "Chapters imported successfully.")
+            except Exception as e:
+                QMessageBox.warning(self, "Import Chapters", f"Failed to import chapters: {str(e)}")
 
     def export_chapters(self):
         if not self.chapters:
