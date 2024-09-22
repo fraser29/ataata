@@ -3,9 +3,15 @@ import cv2
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QSlider, QLabel, QFileDialog, QListWidget, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QInputDialog, QMenu, QAction, QMessageBox, QMenuBar
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QImage, QPixmap
-
 import os
-os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = "/home/fraser/DEV/envs/vid/lib/python3.10/site-packages/PyQt5/Qt5/plugins"
+import site
+
+# Get the site-packages directory
+site_packages = site.getsitepackages()[0]
+qt_plugins_path = os.path.join(site_packages, 'PyQt5', 'Qt5', 'plugins')
+print(qt_plugins_path)
+os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = qt_plugins_path
+
 
 class Ataata(QMainWindow):
     def __init__(self, videoPath=None):
@@ -21,7 +27,8 @@ class Ataata(QMainWindow):
 
         self.init_ui()
         self.create_menu()
-        self.set_and_play_video(videoPath)
+        if videoPath:
+            self.set_and_play_video(videoPath)
 
     def init_ui(self):
         main_layout = QHBoxLayout()
