@@ -11,8 +11,8 @@ from functools import partial
 # Get the site-packages directory
 site_packages = site.getsitepackages()[0]
 qt_plugins_path = os.path.join(site_packages, 'PyQt5', 'Qt5', 'plugins')
-print(qt_plugins_path)
 os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = qt_plugins_path
+thisDir = os.path.dirname(os.path.abspath(__file__))
 
 
 class Ataata(QMainWindow):
@@ -324,7 +324,7 @@ class Ataata(QMainWindow):
 
         # Additional custom shortcuts
         try:
-            with open('shortcuts.json', 'r') as f:
+            with open(os.path.join(thisDir, 'shortcuts.json'), 'r') as f:
                 shortcuts = json.load(f)
         except Exception as e:
             # QMessageBox.warning(self, "Error", f"Failed to load shortcuts: {str(e)}")
