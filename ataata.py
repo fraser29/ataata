@@ -2,9 +2,11 @@ import sys
 import cv2
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QSlider, QLabel, QFileDialog, QListWidget, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QInputDialog, QMenu, QAction, QMessageBox, QMenuBar
 from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtGui import QImage, QPixmap, QKeySequence
 import os
 import site
+import json
+from functools import partial
 
 # Get the site-packages directory
 site_packages = site.getsitepackages()[0]
@@ -27,6 +29,7 @@ class Ataata(QMainWindow):
 
         self.init_ui()
         self.create_menu()
+        self.create_shortcuts()  # Add this line
         if videoPath:
             self.set_and_play_video(videoPath)
 
@@ -197,13 +200,25 @@ class Ataata(QMainWindow):
         if self.timer.isActive():
             self.timer.setInterval(int(1000 / (self.fps * self.playback_speed)))
 
-    def add_chapter(self):
+    def _count_chapters(self, chapterPrefix="Chapter"):
+        count = 0
+        for iChapter in self.chapters:
+            if iChapter[1].startswith(chapterPrefix):
+                count += 1
+        return count
+
+    def add_chapter(self, chapterPrefix="Chapter", showEditPrompt=True):
         if self.cap is not None:
             current_time = self.current_frame / self.fps
-            chapter_name, ok = QInputDialog.getText(self, 
-                                                    "Add Chapter", 
-                                                    "Enter chapter name:", 
-                                                    text=f"Chapter{len(self.chapters)+1}")
+            count = self._count_chapters(chapterPrefix) + 1
+            if showEditPrompt:
+                chapter_name, ok = QInputDialog.getText(self, 
+                                                        "Add Chapter", 
+                                                        "Enter chapter name:", 
+                                                        text=f"{chapterPrefix}{count}")
+            else:
+                chapter_name = f"{chapterPrefix}{count}"
+                ok = True
             if ok and chapter_name:
                 self.chapters.append((current_time, chapter_name))
                 self.update_chapter_list()
@@ -273,6 +288,10 @@ class Ataata(QMainWindow):
             QMessageBox.warning(self, "Export Chapters", "No chapters to export.")
             return
 
+        # Ensure the video is paused
+        if self.timer.isActive():
+            self.timer.stop()
+
         file_path, _ = QFileDialog.getSaveFileName(self, "Export Chapters", "", "Text Files (*.txt)")
         if file_path:
             with open(file_path, 'w') as f:
@@ -285,6 +304,42 @@ class Ataata(QMainWindow):
         m, s = divmod(int(seconds), 60)
         h, m = divmod(m, 60)
         return f"{h:02d}:{m:02d}:{s:02d}"
+
+    def create_shortcuts(self):
+        # Standard shortcuts
+        play_pause_action = QAction('Play/Pause', self)
+        play_pause_action.setShortcut(QKeySequence('Space'))
+        play_pause_action.triggered.connect(self.play_pause)
+        self.addAction(play_pause_action)
+
+        open_video_action = QAction('Open Video', self)
+        open_video_action.setShortcut(QKeySequence('Ctrl+O'))
+        open_video_action.triggered.connect(self.open_video)
+        self.addAction(open_video_action)
+
+        save_chapters_action = QAction('Save Chapters', self)
+        save_chapters_action.setShortcut(QKeySequence('Ctrl+S'))
+        save_chapters_action.triggered.connect(self.export_chapters)
+        self.addAction(save_chapters_action)
+
+        # Additional custom shortcuts
+        try:
+            with open('shortcuts.json', 'r') as f:
+                shortcuts = json.load(f)
+        except Exception as e:
+            # QMessageBox.warning(self, "Error", f"Failed to load shortcuts: {str(e)}")
+            return
+
+        # Create shortcuts based on the JSON file
+        for shortcut in shortcuts:
+            key_combination = shortcut.get("key_combination")
+            chapter_prefix = shortcut.get("chapter_prefix")
+            if key_combination and chapter_prefix:
+                action = QAction(f'Add {chapter_prefix}', self)
+                action.setShortcut(QKeySequence(key_combination))
+                action.triggered.connect(partial(self.add_chapter, chapter_prefix))
+                self.addAction(action)
+                print(f"Added shortcut: {key_combination} -> Add {chapter_prefix}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv[:1])

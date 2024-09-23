@@ -1,0 +1,18 @@
+[
+    {
+        "key_combination": "Ctrl+A",
+        "chapter_prefix": "Chapter"
+    },
+    {
+        "key_combination": "Ctrl+B",
+        "chapter_prefix": "Start"
+    },
+    {
+        "key_combination": "Ctrl+C",
+        "chapter_prefix": "End"
+    },
+    {
+        "key_combination": "Ctrl+F",
+        "chapter_prefix": "Bite"
+    }
+]
