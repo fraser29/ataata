@@ -292,7 +292,8 @@ class Ataata(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
 
-        file_path, _ = QFileDialog.getSaveFileName(self, "Export Chapters", "", "Text Files (*.txt)")
+        default_name = f"{os.path.splitext(self.video_path)[0]}_Chapters.txt" 
+        file_path, _ = QFileDialog.getSaveFileName(self, "Export Chapters", default_name, "Text Files (*.txt)")
         if file_path:
             with open(file_path, 'w') as f:
                 for time, name in sorted(self.chapters):
