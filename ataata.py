@@ -342,7 +342,8 @@ class Ataata(QMainWindow):
                 self.addAction(action)
                 print(f"Added shortcut: {key_combination} -> Add {chapter_prefix}")
 
-if __name__ == "__main__":
+
+def main():
     app = QApplication(sys.argv[:1])
     vidPath = None
     if len(sys.argv) > 1:
@@ -350,3 +351,6 @@ if __name__ == "__main__":
     window = Ataata(vidPath)
     window.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()
